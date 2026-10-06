@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "id": "pointpack.nm-vpn",
+  "name": "NM VPN",
+  "version": "1.0.0",
+  "author": "pointpack",
+  "license": "MIT",
+  "description": "List OpenVPN and WireGuard connections configured in NetworkManager and switch each one on or off from the bar.",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "Panel.qml"
+  },
+  "barWidget": {
+    "displayName": "NM VPN",
+    "description": "Per-connection on/off switches for NetworkManager OpenVPN and WireGuard profiles.",
+    "category": "Network",
+    "allowMultiple": false,
+    "defaultSection": "right",
+    "defaults": {
+      "refreshIntervalSec": 30,
+      "hideWhenEmpty": false
+    },
+    "schema": [
+      {
+        "key": "refreshIntervalSec",
+        "type": "integer",
+        "label": "Fallback refresh interval (seconds)",
+        "min": 5,
+        "max": 3600,
+        "step": 5,
+        "defaultValue": 30
+      },
+      {
+        "key": "hideWhenEmpty",
+        "type": "boolean",
+        "label": "Hide when no VPN connections are configured",
+        "defaultValue": false
+      }
+    ]
+  }
+}

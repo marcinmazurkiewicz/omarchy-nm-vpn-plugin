@@ -1,0 +1,75 @@
+#!/bin/bash
+# Helper for the pointpack.nm-vpn Omarchy shell plugin.
+#
+#   nm-vpn list         JSON array of OpenVPN/WireGuard connections:
+#                       [{"uuid","name","kind","state","device"}]
+#   nm-vpn up <uuid>    Activate a connection (notifies on failure)
+#   nm-vpn down <uuid>  Deactivate a connection (notifies on failure)
+
+set -uo pipefail
+
+# nmcli -t escapes ':' and '\' inside fields; split on unescaped ':' only.
+split_terse() {
+  sed -e 's/\\\\/\x01/g' -e 's/\\:/\x02/g' -e 's/:/\t/g' -e 's/\x02/:/g' -e 's/\x01/\\/g'
+}
+
+list() {
+  declare -A state device
+  while IFS=$'\t' read -r uuid st dev; do
+    state[$uuid]=$st
+    device[$uuid]=$dev
+  done < <(nmcli -t -f UUID,STATE,DEVICE connection show --active 2>/dev/null | split_terse)
+
+  while IFS=$'\t' read -r uuid type name; do
+    case $type in
+    wireguard) kind=wireguard ;;
+    vpn)
+      service=$(nmcli -g vpn.service-type connection show uuid "$uuid" 2>/dev/null)
+      [[ $service == *openvpn* ]] || continue
+      kind=openvpn
+      ;;
+    *) continue ;;
+    esac
+    jq -nc --arg uuid "$uuid" --arg name "$name" --arg kind "$kind" \
+      --arg state "${state[$uuid]:-}" --arg device "${device[$uuid]:-}" \
+      '{uuid: $uuid, name: $name, kind: $kind, state: $state, device: $device}'
+  done < <(nmcli -t -f UUID,TYPE,NAME connection show 2>/dev/null | split_terse) | jq -sc 'sort_by(.name | ascii_downcase)'
+}
+
+conn_name() {
+  nmcli -g connection.id connection show uuid "$1" 2>/dev/null || echo "$1"
+}
+
+up() {
+  local uuid=$1 out
+  if out=$(nmcli --wait 90 connection up uuid "$uuid" 2>&1); then
+    return 0
+  fi
+  local name
+  name=$(conn_name "$uuid")
+  # No secret agent can answer from the shell; ask in a terminal instead.
+  if [[ $out == *[Ss]ecrets* || $out == *password* ]]; then
+    exec xdg-terminal-exec --app-id=org.omarchy.terminal -- \
+      bash -c 'nmcli --ask connection up uuid "$1" || { echo; read -rp "Press Enter to close"; }' _ "$uuid"
+  fi
+  notify-send -u critical -i network-vpn "VPN $name failed" "$(tail -n 3 <<<"$out")"
+  return 1
+}
+
+down() {
+  local uuid=$1 out
+  if ! out=$(nmcli connection down uuid "$uuid" 2>&1); then
+    notify-send -u critical -i network-vpn "VPN $(conn_name "$uuid") disconnect failed" "$(tail -n 3 <<<"$out")"
+    return 1
+  fi
+}
+
+case ${1:-} in
+list) list ;;
+up) [[ -n ${2:-} ]] && up "$2" ;;
+down) [[ -n ${2:-} ]] && down "$2" ;;
+*)
+  echo "usage: nm-vpn list | up <uuid> | down <uuid>" >&2
+  exit 2
+  ;;
+esac
