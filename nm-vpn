@@ -1,5 +1,5 @@
 #!/bin/bash
-# Helper for the pointpack.nm-vpn Omarchy shell plugin.
+# Helper for the m2.nm-vpn Omarchy shell plugin.
 #
 #   nm-vpn list         JSON array of OpenVPN/WireGuard connections:
 #                       [{"uuid","name","kind","state","device"}]

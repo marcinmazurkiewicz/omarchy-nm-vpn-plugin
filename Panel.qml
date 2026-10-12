@@ -13,8 +13,8 @@ import qs.Ui
 // refreshes so the bar follows changes made from anywhere else too.
 Panel {
   id: root
-  moduleName: "pointpack.nm-vpn"
-  ipcTarget: "pointpack.nm-vpn"
+  moduleName: "m2.nm-vpn"
+  ipcTarget:  "m2.nm-vpn"
 
   readonly property string scriptPath: decodeURIComponent(String(Qt.resolvedUrl("nm-vpn")).replace(/^file:\/\//, ""))
   readonly property int refreshIntervalSec: Math.max(5, Number(setting("refreshIntervalSec", 30)))

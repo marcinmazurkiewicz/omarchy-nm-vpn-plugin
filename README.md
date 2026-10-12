@@ -16,7 +16,7 @@ NetworkManager and lets you switch each one on or off independently.
 omarchy plugin add <git-url-or-path-to-this-repo> --enable
 ```
 
-Remove with `omarchy plugin remove pointpack.nm-vpn`.
+Remove with `omarchy plugin remove m2.nm-vpn`.
 
 ## Settings (`~/.config/omarchy/shell.json` entry)
 

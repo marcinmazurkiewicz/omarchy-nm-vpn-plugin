@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "id": "pointpack.nm-vpn",
+  "id": "m2.nm-vpn",
   "name": "NM VPN",
   "version": "1.0.0",
-  "author": "pointpack",
+  "author": "m2",
   "license": "MIT",
   "description": "List OpenVPN and WireGuard connections configured in NetworkManager and switch each one on or off from the bar.",
   "kinds": [
